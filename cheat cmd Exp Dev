@@ -1,0 +1,26 @@
+GDB Command Cheatsheet:
+gdb <program>
+• starts the executable with specific program
+run
+• runs the program
+quit
+• Exits the gdb program
+help
+• Displays information about GDB classes of commands
+help all
+• Displays all of the commands
+break main
+• set a breakpoint on the main function
+disable 1
+• turns off the breakpoint at the first function
+delete
+• deletes all breakpoints
+step or si
+• steps into the program or single step
+next or ni
+• steps over a function
+info all-registers
+• print all registers
+x/xw $esp
+• examines one word of memory at the address of the esp and it will display at
+hexidecimal
