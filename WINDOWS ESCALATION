@@ -1,0 +1,20 @@
+Windows Access Control Model
+Access Tokens
+Security Descriptors
+DACL SACL ACEs
+
+DLL Search Order
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\KnownDLLs 
+The directory the the Application was run from
+The directory specified in in the C+ function GetSystemDirectory()
+The directory specified in the C+ function GetWindowsDirectory()
+The current directory
+
+User Account Control (UAC)
+Always Notify
+Notify me only when programs try to make changes to my computer
+Notify me only when programs try to make changes to my computer (do not dim my desktop)
+Never notify
+
+
+
