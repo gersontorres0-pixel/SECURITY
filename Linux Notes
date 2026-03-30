@@ -1,0 +1,14 @@
+##SUDO##
+sudo -l  ( to see which commands I can execute as a user using sudo )
+
+##SUID/SGID##
+find / -type f -perm /4000 -ls 2>/dev/null     # Find SUID only files
+find / -type f -perm /2000 -ls 2>/dev/null     # Find SGID only files
+find / -type f -perm /6000 -ls 2>/dev/null     # Find SUID and/or SGID files
+
+gtfobins website ( helpful to look for commands and uses )
+
+##"." in path##
+echo $PATH
+
+
